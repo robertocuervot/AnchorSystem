@@ -10,7 +10,7 @@ const char* mqtt_username = "ocia";
 const char* mqtt_client_id = "JuanitoAlimania";
 const char* mqtt_password = "1c@m2n@nt3s";
 
-const char* topic = "proyect/uwb/status";
+const char* topic = "esp32/position";
 
 
 #endif
