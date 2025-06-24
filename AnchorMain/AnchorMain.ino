@@ -8,15 +8,8 @@
 #include <SPI.h>
 #include "DW1000Ranging.h"
 
-enum State {
-  INIT,
-  WAIT_ETHERNET,
-  WAIT_MQTT,
-  RUN,
-  ERROR
-};
-
-State currentState = INIT;
+// For the timestamp
+#include <time.h>
 
 // Ethernet configuration
 #define ETH_CLK_MODE ETH_CLOCK_GPIO17_OUT // Clock mode for LAN8710A
@@ -41,6 +34,11 @@ PubSubClient client(espClient); // MQTT object
 #define IRQ 2
 
 #define ANCHOR_ADD "83:17:5B:D5:A9:9A:E2:9C" // Anchor address
+
+// Variables for ranging info
+uint16_t tagShortAddr = 0;
+float distance = 0.0;
+long timestamp = 0;
 
 ////////////////////////////////// FUNCTIONS ////////////////////////////////////
 
@@ -90,14 +88,32 @@ void connectMQTT() {
 }
 
 void newRange() { // Callback: new distance measure
-  Serial.print("from: ");
-  Serial.print(DW1000Ranging.getDistantDevice()->getShortAddress(), HEX);
-  Serial.print("\t Range: ");
-  Serial.print(DW1000Ranging.getDistantDevice()->getRange());
-  Serial.print(" m");
-  Serial.print("\t RX power: ");
-  Serial.print(DW1000Ranging.getDistantDevice()->getRXPower());
-  Serial.println(" dBm");
+  // Get tag data
+  uint16_t tagShortAddr = DW1000Ranging.getDistantDevice()->getShortAddress();
+  float distance = DW1000Ranging.getDistantDevice()->getRange();
+
+  // To get timestamp
+  time_t now;
+  struct tm timeinfo;
+  time(&now);
+  localtime_r(&now, &timeinfo);
+
+  char timeString[25];
+  strftime(timeString, sizeof(timeString), "%Y-%m-%dT%H:%M:%S", &timeinfo);
+
+  // Format this data in JSON
+  String payload = "{";
+  payload += "\"timestamp\":" + String(timeString) + ",";
+  payload += "\"tag_id\":\"" + String(tagShortAddr, HEX) + "\",";
+  payload += "\"distance\":" + String(distance, 2);
+  payload += "}";
+
+  // Publish to MQTT broker
+  if (client.publish(topic, payload.c_str())) {
+    Serial.println("Data published successfully: " + payload);
+  } else {
+    Serial.println("Failed to publish data");
+  }
 }
 
 void newBlink(DW1000Device* device) { // Callback: new tag detected
@@ -122,6 +138,9 @@ void setup() {
 
   // Start Ethernet
   ETH.begin(ETH_TYPE, ETH_ADDR, ETH_MDC_PIN, ETH_MDIO_PIN, ETH_POWER_PIN, ETH_CLK_MODE);
+
+  // Time configuration
+  configTime(0, 0, "pool.ntp.org"); // UTC timezone
 
   // Initialize MQTT client
   client.setServer(mqtt_server, 1883);
@@ -151,27 +170,14 @@ void loop() {
   client.loop(); // MQTT loop
   DW1000Ranging.loop(); // UWB module loop
 
-  switch(currentState){
-    case INIT:
-      if (ethernet_connected) {
-        Serial.print("IP: ");
-        Serial.println(ETH.localIP());
-      }
-
-      // Ensure MQTT connection is alive
-      if (!client.connected()) {
-        Serial.print("MQTT connection lost.");
-        connectMQTT();
-      }
-
-      // Publish test data
-      String payload = "{\"x\": 2.1, \"y\": 3.7, \"status\": \"test\"}";
-      if (client.publish(topic, payload.c_str())) {
-        Serial.println("Data published successfully: " + payload);
-      } else {
-        Serial.println("Failed to publish data");
-      }
-      break;
+  if (ethernet_connected) {
+    Serial.print("IP: ");
+    Serial.println(ETH.localIP());
   }
 
+  // Ensure MQTT connection is alive
+  if (!client.connected()) {
+    Serial.print("MQTT connection lost.");
+    connectMQTT();
+  }
 }
