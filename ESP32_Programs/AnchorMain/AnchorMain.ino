@@ -33,7 +33,14 @@ PubSubClient client(espClient); // MQTT object
 #define RST 14
 #define IRQ 2
 
-#define ANCHOR_ADD "83:17:5B:D5:A9:9A:E2:9C" // Anchor address
+// leftmost two bytes below will become the "short address"
+char anchor_addr[] = "84:00:5B:D5:A9:9A:E2:9C"; // Anchor address
+
+//calibrated Antenna Delay setting for this anchor
+uint16_t Adelay = 16580;
+
+// calibration distance
+float dist_m = 1; //meters
 
 // Variables for ranging info
 uint16_t tagShortAddr = 0;
@@ -108,6 +115,8 @@ void newRange() { // Callback: new distance measure
   payload += "\"distance\":" + String(distance, 2);
   payload += "}";
 
+  Serial.println("Payload to publish: " + payload);
+
   // Publish to MQTT broker
   if (client.publish(topic, payload.c_str())) {
     Serial.println("Data published successfully: " + payload);
@@ -147,11 +156,17 @@ void setup() {
   connectMQTT(); // Conect to broker
 
   // Initialize SPI communincation and MAX2001 config
-  Serial.println("Starting SPI communication with MAX2001...");
-  SPI.begin(SCK, MISO, MOSI, CS); //SPI configuration
-  // SPI.begin(SCK, MISO, MOSI); //SPI configuration
+  Serial.println("Starting UWB config...");
+  Serial.print("Antenna delay: ");
+  Serial.println(Adelay);
+  Serial.print("Calibration distance: ");
+  Serial.println(dist_m);
+  // SPI.begin(SCK, MISO, MOSI, CS); //SPI configuration
+  SPI.begin(SCK, MISO, MOSI); //SPI configuration
 
   DW1000Ranging.initCommunication(RST, CS, IRQ); //Reset, CS, IRQ pin
+
+  DW1000.setAntennaDelay(Adelay); // set antenna delay for anchors only. Tag is default (16384)
 
   // Define the callbacks
   DW1000Ranging.attachNewRange(newRange);
@@ -160,8 +175,8 @@ void setup() {
   //Enable the filter to smooth the distance
   //DW1000Ranging.useRangeFilter(true);
 
-  //Start the module as an anchor
-  DW1000Ranging.startAsAnchor(ANCHOR_ADD, DW1000.MODE_LONGDATA_RANGE_ACCURACY); // Most robust option
+  //Start the module as an anchor, don't assign random short address
+  DW1000Ranging.startAsAnchor(anchor_addr, DW1000.MODE_LONGDATA_RANGE_ACCURACY, false); // Most robust option
   // DW1000Ranging.startAsAnchor(ANCHOR_ADD, DW1000.MODE_LONGDATA_FAST_ACCURACY); // Faster option, tests required
 
 }
