@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Three.js Volley - Séparation HTML/CSS/JS</title>
+  <style>
+    body {
+      margin: 0;
+      background: #ececec;
+      font-family: Arial, sans-serif;
+    }
+    #scene-container {
+      width: 100vw;
+      height: 100vh;
+      display: block;
+      border: 2px solid #ccc;
+      box-sizing: border-box;
+      background: #ececec;
+    }
+    header {
+      background-color: #1e2d3a;
+      color: white;
+      padding: 15px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 22px;
+    }
+    nav {
+      display: flex;
+      align-items: center;
+    }
+    nav a {
+      color: white;
+      text-decoration: none;
+      margin-left: 25px;
+      font-weight: bold;
+      position: relative;
+    }
+    .dropdown {
+      position: relative;
+      display: inline-block;
+      margin-left: 25px;
+    }
+    .dropdown-toggle {
+      cursor: pointer;
+      background: none;
+      border: none;
+      color: white;
+      font: inherit;
+      font-weight: bold;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .dropdown-toggle:after {
+      content: "▼";
+      font-size: 0.6em;
+      margin-left: 4px;
+      opacity: 0.7;
+    }
+    .dropdown-menu {
+      display: none;
+      position: absolute;
+      right: 0;
+      top: 125%;
+      background: #232339;
+      min-width: 250px;
+      padding: 16px 18px 16px 18px;
+      border-radius: 18px;
+      box-shadow: 0 6px 18px #0004;
+      z-index: 100;
+      animation: fadeIn 0.17s;
+    }
+    .dropdown-menu.visible {
+      display: block;
+    }
+    .account-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+      gap: 10px;
+    }
+    .account-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 2px solid #ff69b4;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      color: #ff69b4;
+      background: #232339;
+      box-sizing: border-box;
+    }
+    .account-info {
+      display: flex;
+      flex-direction: column;
+    }
+    .account-info .name {
+      font-size: 1.08rem;
+      color: #fff;
+      font-weight: bold;
+      margin-bottom: 2px;
+    }
+    .account-info .email {
+      color: #e0e0e0;
+      font-size: 0.97rem;
+      font-weight: normal;
+      word-break: break-all;
+    }
+    .dropdown-menu .account-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+      margin-top: 7px;
+    }
+    .dropdown-menu .account-actions button {
+      background: #ff69b4;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 500;
+      padding: 9px 0;
+      margin: 0;
+      cursor: pointer;
+      transition: background 0.18s, color 0.18s;
+      box-shadow: 0 1px 6px #0001;
+    }
+    .dropdown-menu .account-actions button:last-child {
+      background: #ff3366;
+      font-weight: bold;
+    }
+    .dropdown-menu .account-actions button:hover {
+      background: #ff3380;
+      color: #fff;
+    }
+    .dropdown-menu .account-actions button:last-child:hover {
+      background: #dc143c;
+    }
+    .dropdown-menu .account-actions .reset-link {
+      background: #ffd3ed;
+      color: #ff3366;
+      border-radius: 9px;
+      padding: 7px 0;
+      font-size: 0.98em;
+      font-weight: 500;
+      margin-bottom: 2px;
+      cursor: pointer;
+      border: none;
+      width: 100%;
+      transition: background .17s;
+      margin-top: 0;
+    }
+    .dropdown-menu .account-actions .reset-link:hover {
+      background: #ff69b4;
+      color: #fff;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px);}
+      to { opacity: 1; transform: translateY(0);}
+    }
+    @media (max-width: 600px) {
+      .dropdown-menu { min-width: 140px; padding: 10px 6vw; }
+      .account-header .account-avatar { width: 35px; height: 35px; font-size: 16px;}
+      .account-info .name { font-size: 1rem;}
+      .dropdown-menu .account-actions button { font-size: 0.9rem; padding: 7px 0;}
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Neptunes Nantes - Vue Libre Orbit</h1>
+    <nav>
+      <div class="dropdown">
+        <button class="dropdown-toggle" id="dropdownAccountBtn">Compte 👤</button>
+        <div class="dropdown-menu" id="dropdownMenu">
+          <div class="account-header">
+            <div class="account-avatar">👤</div>
+            <div class="account-info">
+              <span class="name" id="accountName">Utilisateur</span>
+              <span class="email" id="accountEmail">utilisateur@mail.com</span>
+            </div>
+          </div>
+          <div class="account-actions">
+            <button class="reset-link" id="showResetFormBtn">Mot de passe oublié ?</button>
+            <button onclick="window.location.href='reset_mdp.html'">Changer le mot de passe</button>
+            <button onclick="logout()" style="font-weight:bold;">Déconnexion</button>
+          </div>
+        </div>
+      </div>
+      <a href="Historique.html">Historique</a>
+      <a href="#">Tag</a>
+      <a href="Visualisation.html">Accueil</a>
+    </nav>
+  </header>
+  <div id="timestamp">Dernière mise à jour : ...</div>
+  <div id="scene-container"></div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r79/three.js"></script>
+  <script src="Orbitcontrols.js"></script>
+  <script src="main.js"></script>
+  <script>
+    // Menu déroulant
+    const dropdownBtn = document.getElementById('dropdownAccountBtn');
+    const dropdownMenu = document.getElementById('dropdownMenu');
+    dropdownBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      dropdownMenu.classList.toggle('visible');
+    });
+    document.body.addEventListener('click', function () {
+      dropdownMenu.classList.remove('visible');
+    });
+    dropdownMenu.addEventListener('click', function(e) {
+      e.stopPropagation(); // Pour ne pas fermer en cliquant à l'intérieur
+    });
+
+    // Affichage dynamique du nom et mail utilisateur via API PHP
+    fetch('get_user_info.php')
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          document.getElementById('accountName').textContent = data.username;
+          document.getElementById('accountEmail').textContent = data.email;
+        }
+      });
+
+    function logout() {
+      // Détruit la session côté serveur si besoin, puis redirige
+      fetch('logout.php').then(()=> {
+        window.location.href = "Acceuil.html";
+      });
+    }
+
+    // Reset password logic can be added here if needed (voir visualisation2D pour formulaire si besoin)
+  </script>
+</body>
+</html>

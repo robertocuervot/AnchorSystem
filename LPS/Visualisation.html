@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Choisissez une visualisation</title>
+  <style>
+    body {
+      background: #fcfbff;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      margin: 0;
+      min-height: 100vh;
+    }
+    header {
+      background-color: #1e2d3a;
+      color: white;
+      padding: 15px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 22px;
+      letter-spacing: 1px;
+    }
+    h2 {
+      text-align: center;
+      margin-top: 48px;
+      color: #22223b;
+      font-size: 2.3rem;
+      font-weight: 600;
+      letter-spacing: -1px;
+    }
+    .choix-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 60px;
+      margin-top: 60px;
+    }
+    .btn-visu {
+      background: #232339;
+      border-radius: 20px;
+      width: 320px;
+      height: 350px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.15s, box-shadow 0.15s;
+      cursor: pointer;
+      box-shadow: 0 4px 16px #0002;
+      border: none;
+      text-decoration: none;
+    }
+    .btn-visu:hover {
+      transform: translateY(-8px) scale(1.025);
+      box-shadow: 0 8px 32px #0004;
+      background: #34345a;
+    }
+    .visu-img {
+      width: 200px;
+      height: 130px;
+      margin-bottom: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    /* Style pour l'image 2D */
+    .img2d {
+      width: 180px;
+      height: 100px;
+      background: #ffd600;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    .img2d-rect {
+      position: absolute;
+      width: 60px;
+      height: 80px;
+      background: #1976d2;
+      top: 10px;
+      left: 10px;
+      border-radius: 2px;
+    }
+    .img2d-rect.right {
+      left: 110px;
+    }
+    .img2d-center {
+      position: absolute;
+      width: 60px;
+      height: 80px;
+      background: #ffd600;
+      top: 10px;
+      left: 60px;
+      border-radius: 2px;
+      border: 2px solid #fff;
+      box-sizing: border-box;
+    }
+    /* Style pour l'image 3D */
+    .img3d {
+      width: 200px;
+      height: 120px;
+      background: linear-gradient(120deg, #388e3c 80%, #2e7d32 100%);
+      border-radius: 12px;
+      position: relative;
+      box-shadow: 0 4px 16px #0004;
+      transform: perspective(400px) rotateX(18deg) rotateY(-24deg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .img3d-court {
+      position: absolute;
+      inset: 18px 24px 18px 24px;
+      border: 2.5px solid #fff;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    .img3d-filet {
+      position: absolute;
+      left: 50%; top: 40px;
+      width: 2px;
+      height: 40px;
+      background: #fff;
+      transform: translateX(-50%);
+      box-shadow: 0 0 2px #fff;
+    }
+    .img3d-filet::before, .img3d-filet::after {
+      content: "";
+      position: absolute;
+      left: -30px;
+      width: 60px;
+      height: 2px;
+      background: #fff;
+      top: 0;
+    }
+    .img3d-filet::after {
+      top: 40px;
+    }
+    .visu-label {
+      margin-top: 32px;
+      color: #fff;
+      font-size: 2rem;
+      font-weight: 500;
+      text-align: center;
+      letter-spacing: 1px;
+      text-shadow: 0 1px 5px #0002;
+      user-select: none;
+    }
+    @media (max-width: 900px) {
+      .choix-container { flex-direction: column; gap: 32px; }
+      .btn-visu { width: 90vw; max-width: 340px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Neptunes Nantes</h1>
+  </header>
+  <h2>Choisissez une visualisation&nbsp;:</h2>
+  <div class="choix-container">
+    <!-- Bouton 2D -->
+    <a href="terrain_vrintensité.html" class="btn-visu">
+      <div class="visu-img">
+        <div class="img2d">
+          <div class="img2d-rect"></div>
+          <div class="img2d-center"></div>
+          <div class="img2d-rect right"></div>
+        </div>
+      </div>
+      <div class="visu-label">Vue 2D</div>
+    </a>
+    <!-- Bouton 3D -->
+    <a href="index_Version7.html" class="btn-visu">
+      <div class="visu-img">
+        <div class="img3d">
+          <div class="img3d-court"></div>
+          <div class="img3d-filet"></div>
+        </div>
+      </div>
+      <div class="visu-label">Vue 3D</div>
+    </a>
+  </div>
+</body>
+</html>

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Créer un compte - Neptune Nantes</title>
+  <style>
+    body {
+      background: #292845;
+      color: #fff;
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .register-container {
+      background: #282842;
+      border-radius: 10px;
+      padding: 40px;
+      width: 350px;
+      text-align: center;
+      box-shadow: 0 0 15px rgba(255, 105, 180, 0.3);
+    }
+    .register-container img {
+      width: 120px;
+      margin-bottom: 15px;
+    }
+    .register-container h2 {
+      color: #ff69b4;
+      margin-bottom: 20px;
+    }
+    .register-container input {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: none;
+      border-radius: 5px;
+      font-size: 14px;
+    }
+    .register-container button {
+      width: 100%;
+      padding: 10px;
+      background-color: #ff69b4;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-weight: bold;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    .register-container button:hover {
+      background-color: #ff85c1;
+    }
+    .register-container .error {
+      color: #ff6b6b;
+      margin: 5px 0;
+    }
+    .register-container .success {
+      color: #4caf50;
+    }
+    .register-container .already-account {
+      margin-top: 15px;
+      color: #aaa;
+      font-size: 14px;
+    }
+    .register-container .already-account a {
+      color: #ff69b4;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="register-container">
+    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSH5bVx_zEWZ-Hfu-berGtSrH7-UKe_nntCWEPq7GpINoq6japzDHmMNxZ2D7OZZqpd2P8&usqp=CAU" alt="Logo">
+    <h2>Créer un compte</h2>
+    <form id="register-form">
+      <input type="text" id="reg-username" placeholder="Nom d'utilisateur" required>
+      <input type="email" id="reg-email" placeholder="Adresse email" required>
+      <input type="password" id="reg-password" placeholder="Mot de passe" required>
+      <input type="password" id="reg-password-confirm" placeholder="Confirmer le mot de passe" required>
+      <div id="reg-error" class="error"></div>
+      <button type="submit">Créer le compte</button>
+    </form>
+    <div class="already-account">
+      Déjà inscrit ? <a href="Acceuil.html">Se connecter</a>
+    </div>
+  </div>
+  <script>
+    document.getElementById('register-form').onsubmit = async function(e) {
+      e.preventDefault();
+      const username = document.getElementById('reg-username').value.trim();
+      const email = document.getElementById('reg-email').value.trim();
+      const password = document.getElementById('reg-password').value;
+      const password2 = document.getElementById('reg-password-confirm').value;
+      const errorDiv = document.getElementById('reg-error');
+      errorDiv.textContent = "";
+
+      if(password !== password2) {
+        errorDiv.textContent = "Les mots de passe ne correspondent pas.";
+        return;
+      }
+      if(password.length < 6){
+        errorDiv.textContent = "Le mot de passe doit contenir au moins 6 caractères.";
+        return;
+      }
+
+      try {
+        const response = await fetch('register.php', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ username, email, password })
+        });
+        const result = await response.json();
+        if(result.success){
+          errorDiv.className = "success";
+          errorDiv.textContent = "Compte créé avec succès ! Redirection...";
+          setTimeout(()=>{ window.location.href = "Acceuil.html"; }, 1500);
+        } else {
+          errorDiv.className = "error";
+          errorDiv.textContent = result.message || "Erreur lors de la création du compte.";
+        }
+      } catch {
+        errorDiv.className = "error";
+        errorDiv.textContent = "Erreur de connexion au serveur.";
+      }
+    };
+  </script>
+</body>
+</html>

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Connexion - Neptune Nantes</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #1c1c2e;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      color: white;
+    }
+
+    .login-container {
+      background-color: #2a2a40;
+      border-radius: 10px;
+      padding: 40px;
+      width: 350px;
+      box-shadow: 0 0 15px rgba(255, 105, 180, 0.3);
+      text-align: center;
+    }
+
+    .login-container img {
+      width: 120px;
+      margin-bottom: 15px;
+    }
+
+    .login-container h2 {
+      margin-bottom: 10px;
+      font-size: 20px;
+      color: #ff69b4;
+    }
+
+    .login-container input, .login-container button {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: none;
+      border-radius: 5px;
+      font-size: 14px;
+    }
+
+    .login-container input[type="submit"], .login-container button {
+      background-color: #ff69b4;
+      color: white;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background-color 0.3s ease;
+    }
+
+    .login-container input[type="submit"]:hover, .login-container button:hover {
+      background-color: #ff85c1;
+    }
+
+    .login-container .register-link, .login-container .forgot-link {
+      margin-top: 10px;
+      display: block;
+      font-size: 14px;
+      color: #aaa;
+    }
+
+    .login-container .register-link a,
+    .login-container .forgot-link a {
+      color: #ff69b4;
+      text-decoration: none;
+    }
+
+    .login-container .register-link a:hover,
+    .login-container .forgot-link a:hover {
+      text-decoration: underline;
+    }
+
+    #forgot-form {
+      display: none;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSH5bVx_zEWZ-Hfu-berGtSrH7-UKe_nntCWEPq7GpINoq6japzDHmMNxZ2D7OZZqpd2P8&usqp=CAU" alt="Logo Neptune Nantes">
+    <h2>Système de Localisation Neptune Nantes</h2>
+    <form autocomplete="on">
+      <label for="login-identifier">Nom ou Email</label>
+      <input id="login-identifier" type="text" placeholder="Nom ou Email" autocomplete="username email" required>
+      <label for="login-password">Mot de passe</label>
+      <input id="login-password" type="password" placeholder="Mot de passe" autocomplete="current-password" required>
+      <input type="submit" value="Se connecter">
+    </form>
+    <div class="forgot-link">
+      <a href="#" id="forgot-link">Mot de passe oublié ?</a>
+    </div>
+    <div id="forgot-form">
+      <h3>Réinitialiser le mot de passe</h3>
+      <input type="email" id="forgot-email" placeholder="Votre email" required>
+      <button id="reset-btn">Envoyer</button>
+    </div>
+    <div class="register-link">
+      Pas encore de compte ? <a href="register.html">Créer un compte</a>
+    </div>
+  </div>
+  <script>
+  // Gestion du formulaire de connexion
+  document.querySelector('form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const identifier = this.querySelector('#login-identifier').value;
+    const password = this.querySelector('input[type="password"]').value;
+    try {
+      const response = await fetch('data.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ identifier, password })
+      });
+      if (response.ok) {
+        window.location.href = "Visualisation.html";
+      } else {
+        const error = await response.json();
+        alert(error.message || "Erreur de connexion");
+      }
+    } catch (err) {
+      alert("Erreur de connexion au serveur");
+    }
+  });
+
+  // Affichage du formulaire "mot de passe oublié"
+  document.getElementById('forgot-link').onclick = function(e) {
+    e.preventDefault();
+    document.querySelector('.login-container form').style.display = "none";
+    document.getElementById('forgot-form').style.display = "block";
+    document.querySelector('.forgot-link').style.display = "none";
+    document.querySelector('.register-link').style.display = "none";
+  };
+
+  // Gestion du reset mot de passe
+  document.getElementById('reset-btn').onclick = async function(e) {
+    e.preventDefault();
+    const email = document.getElementById('forgot-email').value;
+    try {
+      const response = await fetch('/LPS/reset_password.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      const result = await response.json();
+      if (result.success) {
+        alert("Votre nouveau mot de passe temporaire : " + result.newPassword);
+        location.reload();
+      } else {
+        alert(result.message || "Erreur lors de la réinitialisation");
+      }
+    } catch (err) {
+      alert("Erreur de connexion au serveur");
+    }
+  };
+  </script>
+</body>
+</html>

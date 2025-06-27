@@ -1,0 +1,495 @@
+<!DOCTYPE html> 
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Visualisation 2D - Terrain de Volley</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #f6f6f6;
+    }
+
+    header {
+      background-color: #1e2d3a;
+      color: white;
+      padding: 15px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 22px;
+    }
+
+    nav {
+      display: flex;
+      align-items: center;
+    }
+    nav a {
+      color: white;
+      text-decoration: none;
+      margin-left: 25px;
+      font-weight: bold;
+      position: relative;
+    }
+
+    /* Menu déroulant compte */
+    .dropdown {
+      position: relative;
+      display: inline-block;
+      margin-left: 25px;
+    }
+    .dropdown-toggle {
+      cursor: pointer;
+      background: none;
+      border: none;
+      color: white;
+      font: inherit;
+      font-weight: bold;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .dropdown-toggle:after {
+      content: "▼";
+      font-size: 0.6em;
+      margin-left: 4px;
+      opacity: 0.7;
+    }
+    .dropdown-menu {
+      display: none;
+      position: absolute;
+      right: 0;
+      top: 125%;
+      background: #232339;
+      min-width: 250px;
+      padding: 16px 18px 16px 18px;
+      border-radius: 18px;
+      box-shadow: 0 6px 18px #0004;
+      z-index: 100;
+      animation: fadeIn 0.17s;
+    }
+    .dropdown-menu.visible {
+      display: block;
+    }
+    .account-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+      gap: 10px;
+    }
+    .account-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 2px solid #ff69b4;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      color: #ff69b4;
+      background: #232339;
+      box-sizing: border-box;
+    }
+    .account-info {
+      display: flex;
+      flex-direction: column;
+    }
+    .account-info .name {
+      font-size: 1.08rem;
+      color: #fff;
+      font-weight: bold;
+      margin-bottom: 2px;
+    }
+    .account-info .email {
+      color: #e0e0e0;
+      font-size: 0.97rem;
+      font-weight: normal;
+      word-break: break-all;
+    }
+    .dropdown-menu .account-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+      margin-top: 7px;
+    }
+    .dropdown-menu .account-actions button {
+      background: #ff69b4;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 500;
+      padding: 9px 0;
+      margin: 0;
+      cursor: pointer;
+      transition: background 0.18s, color 0.18s;
+      box-shadow: 0 1px 6px #0001;
+    }
+    .dropdown-menu .account-actions button:last-child {
+      background: #ff3366;
+      font-weight: bold;
+    }
+    .dropdown-menu .account-actions button:hover {
+      background: #ff3380;
+      color: #fff;
+    }
+    .dropdown-menu .account-actions button:last-child:hover {
+      background: #dc143c;
+    }
+    .dropdown-menu .account-actions .reset-link {
+      background: #ffd3ed;
+      color: #ff3366;
+      border-radius: 9px;
+      padding: 7px 0;
+      font-size: 0.98em;
+      font-weight: 500;
+      margin-bottom: 2px;
+      cursor: pointer;
+      border: none;
+      width: 100%;
+      transition: background .17s;
+      margin-top: 0;
+    }
+    .dropdown-menu .account-actions .reset-link:hover {
+      background: #ff69b4;
+      color: #fff;
+    }  
+
+    #wrapper {
+      display: flex;
+      justify-content: center;
+      margin-top: 40px;
+    }
+
+    #terrain-container {
+      position: relative;
+      width: 900px;   /* 18m => 50px/m */
+      height: 450px;  /* 9m => 50px/m */
+      border: 1px solid #333;
+      background-color: #d9f1ff;
+      background-image: url("https://static.vecteezy.com/ti/vecteur-libre/t1/2634900-terrain-de-volley-ball-vue-de-dessus-vector-illustration-vectoriel.jpg");
+      background-size: cover;
+      background-position: center;
+    }
+
+    .tag {
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background-color: #ff5a7d;
+      color: white;
+      text-align: center;
+      line-height: 18px;
+      font-size: 11px;
+      font-weight: bold;
+      transform: translate(-50%, -50%);
+      border: 2px solid #333;
+    }
+
+    .axis-x, .axis-y {
+      position: absolute;
+      font-size: 12px;
+      color: #444;
+    }
+
+    .axis-x {
+      top: 100%;
+      transform: translateY(5px);
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+    }
+
+    .axis-x span, .axis-y span {
+      width: 1px;
+      margin-left: -1px;
+    }
+
+    .axis-y {
+      left: -30px;
+      top: 0;
+      display: flex;
+      flex-direction: column-reverse;
+      height: 100%;
+      justify-content: space-between;
+    }
+
+    #timestamp {
+      text-align: center;
+      margin-top: 20px;
+      color: #555;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px);}
+      to { opacity: 1; transform: translateY(0);}
+    }
+    @media (max-width: 600px) {
+      .dropdown-menu { min-width: 140px; padding: 10px 6vw; }
+      .account-header .account-avatar { width: 35px; height: 35px; font-size: 16px;}
+      .account-info .name { font-size: 1rem;}
+      .dropdown-menu .account-actions button { font-size: 0.9rem; padding: 7px 0;}
+    }
+
+    /* Reset password form */
+    #reset-password-container {
+      display: none;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      min-height: 65vh;
+    }
+    .reset-form-box {
+      background-color: #2a2a40;
+      border-radius: 12px;
+      padding: 35px 28px 28px 28px;
+      width: 340px;
+      box-shadow: 0 0 15px rgba(255, 105, 180, 0.16);
+      text-align: center;
+      color: #fff;
+      margin-top: 30px;
+    }
+    .reset-form-box h3 {
+      color: #ff69b4;
+      margin-bottom: 12px;
+      margin-top: 0;
+      font-size: 1.13em;
+    }
+    .reset-form-box input[type="email"] {
+      width: 97%;
+      padding: 9px;
+      border-radius: 6px;
+      border: none;
+      margin-bottom: 14px;
+      font-size: 1em;
+      background: #232339;
+      color: #fff;
+    }
+    .reset-form-box button, .reset-form-box .back-btn {
+      width: 100%;
+      padding: 10px 0;
+      border: none;
+      border-radius: 7px;
+      background: #ff69b4;
+      color: #fff;
+      font-weight: bold;
+      font-size: 1.08em;
+      margin-bottom: 4px;
+      margin-top: 0;
+      cursor: pointer;
+      transition: background .2s;
+    }
+    .reset-form-box button:hover, .reset-form-box .back-btn:hover {
+      background: #ff3380;
+    }
+    .reset-form-box .back-btn {
+      background: #232339;
+      color: #ff69b4;
+      font-weight: normal;
+      margin-top: 8px;
+      margin-bottom: 0;
+      border: 1px solid #ff69b4;
+    }
+    .reset-form-box .status-message {
+      margin-top: 10px;
+      font-size: 0.97em;
+      min-height: 22px;
+      color: #ffd3ed;
+    }
+    /* Masquer le contenu principal quand reset visible */
+    body.reset-active #wrapper,
+    body.reset-active #timestamp {
+      display: none !important;
+    }
+    body.reset-active #reset-password-container {
+      display: flex !important;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Neptunes Nantes - Localisation 2D</h1>
+  <nav>
+    <div class="dropdown">
+      <button class="dropdown-toggle" id="dropdownAccountBtn">Compte 👤</button>
+      <div class="dropdown-menu" id="dropdownMenu">
+        <div class="account-header">
+          <div class="account-avatar">👤</div>
+          <div class="account-info">
+            <span class="name" id="accountName">Utilisateur</span>
+            <span class="email" id="accountEmail">utilisateur@mail.com</span>
+          </div>
+        </div>
+        <div class="account-actions">
+          <button class="reset-link" id="showResetFormBtn">Mot de passe oublié ?</button>
+          <button onclick="window.location.href='reset_mdp.html'">Changer le mot de passe</button>
+          <button onclick="logout()" style="font-weight:bold;">Déconnexion</button>
+        </div>
+      </div>
+    </div>
+    <a href="Historique.html">Historique</a>
+    <a href="#">Tag</a>
+    <a href="Visualisation.html">Accueil</a>
+  </nav>
+</header>
+
+<div id="wrapper">
+  <div style="position: relative;">
+    <div class="axis-y" id="y-axis"></div>
+    <div id="terrain-container">
+      <div class="axis-x" id="x-axis"></div>
+    </div>
+  </div>
+</div>
+<div id="timestamp">Dernière mise à jour : --</div>
+
+<!-- RESET PASSWORD FORMULAIRE (caché par défaut) -->
+<div id="reset-password-container">
+  <div class="reset-form-box">
+    <h3>Réinitialiser le mot de passe</h3>
+    <input type="email" id="resetEmail" placeholder="Votre email" required>
+    <button id="resetBtn">Envoyer un nouveau mot de passe</button>
+    <button class="back-btn" id="backToVisualisationBtn">Retour</button>
+    <div class="status-message" id="resetStatus"></div>
+  </div>
+</div>
+
+<script>
+  // Menu déroulant
+  const dropdownBtn = document.getElementById('dropdownAccountBtn');
+  const dropdownMenu = document.getElementById('dropdownMenu');
+  dropdownBtn.addEventListener('click', function (e) {
+    e.stopPropagation();
+    dropdownMenu.classList.toggle('visible');
+  });
+  document.body.addEventListener('click', function () {
+    dropdownMenu.classList.remove('visible');
+  });
+  dropdownMenu.addEventListener('click', function(e) {
+    e.stopPropagation(); // Pour ne pas fermer en cliquant à l'intérieur
+  });
+
+  // Affichage dynamique du nom et mail utilisateur via API PHP
+  fetch('get_user_info.php')
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        document.getElementById('accountName').textContent = data.username;
+        document.getElementById('accountEmail').textContent = data.email;
+      }
+    });
+
+  function logout() {
+    // Détruit la session côté serveur si besoin, puis redirige
+    fetch('logout.php').then(()=> {
+      window.location.href = "Acceuil.html";
+    });
+  }
+
+  // -------- RESET PASSWORD LOGIQUE ---------
+  document.getElementById('showResetFormBtn').onclick = function() {
+    const mail = document.getElementById('accountEmail').textContent;
+    document.getElementById('resetEmail').value = (mail && mail !== 'utilisateur@mail.com') ? mail : '';
+    document.getElementById('resetStatus').textContent = '';
+    document.body.classList.add('reset-active');
+    dropdownMenu.classList.remove('visible');
+  };
+  document.getElementById('backToVisualisationBtn').onclick = function() {
+    document.body.classList.remove('reset-active');
+  };
+  document.getElementById('resetBtn').onclick = async function(e) {
+    e.preventDefault();
+    const email = document.getElementById('resetEmail').value.trim();
+    const statusDiv = document.getElementById('resetStatus');
+    if (!email) {
+      statusDiv.textContent = "Veuillez entrer votre email.";
+      return;
+    }
+    statusDiv.textContent = "Envoi en cours...";
+    try {
+      const response = await fetch('reset_password.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      const result = await response.json();
+      if (result.success) {
+        statusDiv.textContent = "Mot de passe envoyé : " + result.newPassword;
+      } else {
+        statusDiv.textContent = result.message || "Erreur lors de la réinitialisation.";
+      }
+    } catch (err) {
+      statusDiv.textContent = "Erreur de connexion au serveur.";
+    }
+  };
+
+  // Génération des axes X (0 à 18 m)
+  for (let i = 0; i <= 18; i++) {
+    const span = document.createElement("span");
+    span.innerText = i + "m";
+    span.style.position = "absolute";
+    span.style.left = (i * 50) + "px"; // 50px/m
+    document.getElementById("x-axis").appendChild(span);
+  }
+
+  // Génération des axes Y (0 à 9 m)
+  for (let i = 0; i <= 9; i++) {
+    const span = document.createElement("span");
+    span.innerText = i + "m";
+    document.getElementById("y-axis").appendChild(span);
+  }
+
+  // --- WebSocket Connection ---
+  const socket = new WebSocket("ws://localhost:3000");
+
+  socket.onopen = function () {
+    console.log("✅ Connexion WebSocket établie");
+  };
+
+  socket.onerror = function (error) {
+    console.error("❌ Erreur WebSocket :", error);
+  };
+
+  socket.onmessage = function (event) {
+    try {
+      const data = JSON.parse(event.data);
+
+      let tag = document.getElementById(data.tag);
+      if (!tag) {
+        tag = document.createElement("div");
+        tag.id = data.tag;
+        tag.className = "tag";
+        tag.textContent = data.tag.replace("tag", "T");
+        document.getElementById("terrain-container").appendChild(tag);
+      }
+
+      tag.style.left = (data.x * 50) + "px";
+      tag.style.top = (450 - data.y * 50) + "px";
+
+      const z = data.z || 0;
+      let color = "#999";
+      if (z < 1) {
+        color = "#007bff"; // bleu
+      } else if (z >= 1 && z < 2) {
+        color = "#ffc107"; // jaune
+      } else if (z >= 2) {
+        color = "#dc3545"; // rouge
+      }
+      tag.style.backgroundColor = color;
+
+      document.getElementById("timestamp").textContent = "Dernière mise à jour : " + data.time;
+
+    } catch (e) {
+      console.error("❌ Erreur parsing JSON :", e);
+    }
+  };
+</script>
+
+</body>
+</html>

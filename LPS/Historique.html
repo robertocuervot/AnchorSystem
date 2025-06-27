@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Historique des positions - Neptune Nantes</title>
+  <style>
+    body {
+      background: #292845;
+      color: #fff;
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    .historique-container {
+      max-width: 900px;
+      margin: 40px auto;
+      background: #282842;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(255, 105, 180, 0.15);
+      padding: 30px 30px 20px 30px;
+    }
+    h2 {
+      color: #ff69b4;
+      margin-bottom: 18px;
+      text-align: center;
+    }
+    form#historique-filtre {
+      display: flex;
+      gap: 18px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 22px;
+    }
+    form#historique-filtre label {
+      font-weight: 500;
+      color: #f1f1f1;
+      margin-right: 5px;
+    }
+    form#historique-filtre select,
+    form#historique-filtre input[type="date"] {
+      padding: 7px 10px;
+      border: none;
+      border-radius: 5px;
+      background: #23223c;
+      color: #fff;
+      font-size: 15px;
+      margin-right: 10px;
+    }
+    form#historique-filtre button {
+      background: #ff69b4;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      padding: 7px 18px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    form#historique-filtre button:hover {
+      background: #ff85c1;
+    }
+    table#historique-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+      background: #24243c;
+      border-radius: 7px;
+      overflow: hidden;
+      box-shadow: 0 0 5px rgba(255, 105, 180, 0.08);
+    }
+    table#historique-table th, table#historique-table td {
+      padding: 10px 8px;
+      text-align: center;
+    }
+    table#historique-table th {
+      background: #292845;
+      color: #ff69b4;
+      font-weight: 700;
+      font-size: 16px;
+      border-bottom: 2px solid #ff69b4;
+    }
+    table#historique-table tr:nth-child(even) td {
+      background: #23223c;
+    }
+    table#historique-table tr:nth-child(odd) td {
+      background: #2c2c4a;
+    }
+    .no-data {
+      text-align: center;
+      color: #aaa;
+      font-style: italic;
+      margin: 18px 0 0 0;
+    }
+    @media (max-width: 600px) {
+      .historique-container {
+        padding: 10px 4px;
+      }
+      table#historique-table th, table#historique-table td {
+        font-size: 12px;
+        padding: 5px 2px;
+      }
+      form#historique-filtre {
+        flex-direction: column;
+        gap: 8px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="historique-container">
+    <h2>Historique des positions de tag</h2>
+    <form id="historique-filtre">
+      <label for="tag-select">Tag :</label>
+      <select id="tag-select" name="tag_id">
+        <option value="">Tous</option>
+      </select>
+      <label for="date-select">Date :</label>
+      <input type="date" id="date-select" name="date">
+      <button type="submit">Filtrer</button>
+    </form>
+    <table id="historique-table">
+      <thead>
+        <tr>
+          <th>Date &amp; Heure</th>
+          <th>Tag</th>
+          <th>X</th>
+          <th>Y</th>
+          <th>Z</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Historique chargé dynamiquement -->
+      </tbody>
+    </table>
+    <div id="no-data-msg" class="no-data" style="display:none;">Aucune donnée à afficher...</div>
+  </div>
+
+  <script>
+    // Charger dynamiquement la liste des tags pour le filtre
+    async function chargerTags() {
+      try {
+        const res = await fetch('get_tags.php');
+        if (!res.ok) throw new Error('Erreur réseau');
+        const tags = await res.json();
+        const select = document.getElementById('tag-select');
+        tags.forEach(tag => {
+          let opt = document.createElement('option');
+          opt.value = tag.id;
+          opt.textContent = tag.nom;
+          select.appendChild(opt);
+        });
+      } catch (e) {
+        // En cas d'erreur, laisse juste "Tous"
+      }
+    }
+
+    // Charger l'historique, optionnellement filtré
+         
+    async function chargerHistorique(tag = "", date = "") {
+      let url = "get_historique.php?";
+      const params = [];
+      if(tag) params.push("tag=" + encodeURIComponent(tag));
+      if(date) params.push("date=" + encodeURIComponent(date));
+      url += params.join("&");
+      console.log("URL finale envoyée :", url);  // ← ajoute ceci
+
+
+      const tbody = document.querySelector("#historique-table tbody");
+      const noData = document.getElementById("no-data-msg");
+      tbody.innerHTML = "";
+      noData.style.display = "none";
+
+      try {
+        
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("Erreur réseau");
+        const data = await response.json();
+
+        if (!data.length) {
+         noData.style.display = "block";
+         return;
+        }
+        data.forEach(item => {
+          tbody.innerHTML += `<tr>
+            <td>${item.date_time}</td>
+            <td>${item.tag_name}</td>
+            <td>${item.x}</td>
+            <td>${item.y}</td>
+            <td>${item.z}</td>
+          </tr>`;
+        });
+      } catch (e) {
+        noData.textContent = "Erreur lors du chargement des données.";
+        noData.style.display = "block";
+      }
+    }
+
+    // Gestion du filtre
+    document.getElementById('historique-filtre').onsubmit = function(e) {
+      e.preventDefault();
+      const tag = document.getElementById('tag-select').value;
+      const date = document.getElementById('date-select').value;
+      chargerHistorique(tag, date);
+    };
+
+    // Initialisation
+    chargerTags();
+    chargerHistorique();
+  </script>
+</body>
+</html>
